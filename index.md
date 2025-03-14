@@ -7,91 +7,85 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
-      font-family: sans-serif;
-      margin: 10px;
-      background: #f9f9f9;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f7f7f7;
     }
     h1 {
       text-align: center;
-      color: #333;
+      margin-bottom: 20px;
     }
     .opportunity {
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      background: #fff;
+      background-color: #fff;
+      border: 1px solid #ddd;
       padding: 10px;
-      margin-bottom: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 10px;
+      border-radius: 5px;
     }
-    .title {
+    .spread {
       font-weight: bold;
-      margin-bottom: 5px;
-    }
-    .detail {
-      font-size: 0.9em;
-      margin-bottom: 3px;
+      color: green;
     }
   </style>
 </head>
 <body>
   <h1>Арбитражные возможности</h1>
-  <div id="data">Загрузка данных...</div>
+  <div id="opportunities">Загрузка данных...</div>
   
   <script>
-    // Инициализация Telegram Web Apps API
+    // Инициализация Telegram Web App API
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    // Укажите ваш публичный URL API (например, полученный через Local Tunnel)
-    const API_URL = "https://wicked-birds-bet.loca.lt/api/data";
+    // Укажите ваш публичный URL, полученный через Local Tunnel (с поддержкой wss)
+    const wsUrl = "wss://brown-socks-tap.loca.lt/api/data";
+    const ws = new WebSocket(wsUrl);
 
-    // Функция запроса данных с API (без кэширования)
-    async function fetchData() {
+    ws.onopen = () => {
+      console.log("WebSocket соединение установлено");
+    };
+
+    ws.onmessage = (event) => {
       try {
-        const response = await fetch(API_URL, { cache: "no-store" });
-        if (!response.ok) {
-          console.error("Ошибка HTTP:", response.status);
-          return [];
-        }
-        const data = await response.json();
-        return data;
+        // Получаем обновленные данные (ожидается, что сервер отправляет JSON-массив)
+        const data = JSON.parse(event.data);
+        renderOpportunities(data);
       } catch (error) {
-        console.error("Ошибка запроса:", error);
-        return [];
+        console.error("Ошибка при обработке сообщения", error);
       }
-    }
+    };
 
-    // Функция для рендеринга списка возможностей
-    function renderData(opportunities) {
-      const container = document.getElementById("data");
+    ws.onerror = (error) => {
+      console.error("WebSocket ошибка: ", error);
+    };
+
+    ws.onclose = () => {
+      console.log("WebSocket соединение закрыто");
+    };
+
+    // Функция отображения списка арбитражных возможностей
+    function renderOpportunities(opportunities) {
+      const container = document.getElementById("opportunities");
+      container.innerHTML = "";
       if (!opportunities || opportunities.length === 0) {
         container.innerHTML = "<p>Нет арбитражных возможностей</p>";
         return;
       }
-      // Формируем HTML для каждой возможности
-      let html = "";
-      opportunities.forEach(item => {
-        html += `
-          <div class="opportunity">
-            <div class="title">${item.symbol} (${item.exchangePair})</div>
-            <div class="detail">Спред: ${item.spread.toFixed(2)}%</div>
-            <div class="detail"><strong>ЛОНГ:</strong> ${item.long.exchange} – Цена: ${item.long.price} USDT, ASK: ${item.long.ask}, Funding: ${item.long.funding}, Volume: ${item.long.volume}</div>
-            <div class="detail"><strong>ШОРТ:</strong> ${item.short.exchange} – Цена: ${item.short.price} USDT, BID: ${item.short.bid}, Funding: ${item.short.funding}, Volume: ${item.short.volume}</div>
-          </div>
+      opportunities.forEach(opp => {
+        const div = document.createElement("div");
+        div.className = "opportunity";
+        div.innerHTML = `
+          <h2>${opp.symbol} (${opp.exchangePair})</h2>
+          <p>Спред: <span class="spread">${opp.spread.toFixed(2)}%</span></p>
+          <p><strong>ЛОНГ:</strong> ${opp.long.exchange} – Цена: ${opp.long.price} USDT, ASK: ${opp.long.ask}<br>
+             Funding: ${opp.long.funding}, Volume: ${opp.long.volume}</p>
+          <p><strong>ШОРТ:</strong> ${opp.short.exchange} – Цена: ${opp.short.price} USDT, BID: ${opp.short.bid}<br>
+             Funding: ${opp.short.funding}, Volume: ${opp.short.volume}</p>
         `;
+        container.appendChild(div);
       });
-      container.innerHTML = html;
     }
-
-    // Функция обновления данных, вызываемая каждые 0.5 сек
-    async function updateData() {
-      const opportunities = await fetchData();
-      // Предполагается, что API уже возвращает отсортированный список по спреду
-      renderData(opportunities);
-    }
-
-    // Запуск опроса API каждые 500 мс
-    setInterval(updateData, );
   </script>
 </body>
 </html>
