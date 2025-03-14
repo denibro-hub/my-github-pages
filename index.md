@@ -3,25 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Арбитражные возможности</title>
+  <title>Арбитраж Возможности</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      background-color: #f7f7f7;
+      margin: 20px;
+      background: #f7f7f7;
     }
     h1 {
-      text-align: center;
-      margin-bottom: 20px;
+      color: #333;
     }
     .opportunity {
-      background-color: #fff;
+      background: #fff;
       border: 1px solid #ddd;
+      border-radius: 5px;
       padding: 10px;
       margin-bottom: 10px;
-      border-radius: 5px;
     }
     .spread {
       font-weight: bold;
@@ -30,58 +28,54 @@
   </style>
 </head>
 <body>
-  <h1>Арбитражные возможности</h1>
-  <div id="opportunities">Загрузка данных...</div>
+  <h1>Арбитражные Возможности</h1>
+  <div id="opportunities">
+    <p>Ожидание данных...</p>
+  </div>
   
   <script>
     // Инициализация Telegram Web App API
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    // Укажите ваш публичный URL, полученный через Local Tunnel (с поддержкой wss)
-    const wsUrl = "wss://brown-socks-tap.loca.lt/api/data";
+    // Укажите ваш публичный WebSocket URL (например, полученный через ngrok)
+    const wsUrl = "wss://thick-lands-begin.loca.lt/ws";
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
-      console.log("WebSocket соединение установлено");
+      console.log("WebSocket подключен");
     };
 
     ws.onmessage = (event) => {
-      try {
-        // Получаем обновленные данные (ожидается, что сервер отправляет JSON-массив)
-        const data = JSON.parse(event.data);
-        renderOpportunities(data);
-      } catch (error) {
-        console.error("Ошибка при обработке сообщения", error);
-      }
+      const data = JSON.parse(event.data);
+      updateOpportunities(data);
     };
 
     ws.onerror = (error) => {
-      console.error("WebSocket ошибка: ", error);
+      console.error("WebSocket ошибка:", error);
     };
 
     ws.onclose = () => {
       console.log("WebSocket соединение закрыто");
     };
 
-    // Функция отображения списка арбитражных возможностей
-    function renderOpportunities(opportunities) {
+    // Функция обновления списка возможностей на странице
+    function updateOpportunities(data) {
       const container = document.getElementById("opportunities");
-      container.innerHTML = "";
-      if (!opportunities || opportunities.length === 0) {
-        container.innerHTML = "<p>Нет арбитражных возможностей</p>";
+      container.innerHTML = ""; // очищаем содержимое
+      if (!data || data.length === 0) {
+        container.innerHTML = "<p>Нет арбитражных возможностей.</p>";
         return;
       }
-      opportunities.forEach(opp => {
+      // data уже должна быть отсортирована по спреду (от большего к меньшему)
+      data.forEach(item => {
         const div = document.createElement("div");
         div.className = "opportunity";
         div.innerHTML = `
-          <h2>${opp.symbol} (${opp.exchangePair})</h2>
-          <p>Спред: <span class="spread">${opp.spread.toFixed(2)}%</span></p>
-          <p><strong>ЛОНГ:</strong> ${opp.long.exchange} – Цена: ${opp.long.price} USDT, ASK: ${opp.long.ask}<br>
-             Funding: ${opp.long.funding}, Volume: ${opp.long.volume}</p>
-          <p><strong>ШОРТ:</strong> ${opp.short.exchange} – Цена: ${opp.short.price} USDT, BID: ${opp.short.bid}<br>
-             Funding: ${opp.short.funding}, Volume: ${opp.short.volume}</p>
+          <h2>${item.symbol} (${item.exchangePair})</h2>
+          <p>Спред: <span class="spread">${item.spread.toFixed(2)}%</span></p>
+          <p><strong>ЛОНГ:</strong> ${item.long.exchange} – Цена: ${item.long.price} USDT | ASK: ${item.long.ask} | Funding: ${item.long.funding} | Volume: ${item.long.volume}</p>
+          <p><strong>ШОРТ:</strong> ${item.short.exchange} – Цена: ${item.short.price} USDT | BID: ${item.short.bid} | Funding: ${item.short.funding} | Volume: ${item.short.volume}</p>
         `;
         container.appendChild(div);
       });
