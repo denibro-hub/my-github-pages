@@ -91,7 +91,7 @@
     }
 
     // Запуск опроса API каждые 500 мс
-    setInterval(updateData, 500);
+    setInterval(updateData, );
   </script>
 </body>
 </html>
