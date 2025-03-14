@@ -39,7 +39,7 @@
     tg.expand();
 
     // Укажите ваш публичный WebSocket URL (например, полученный через ngrok)
-    const wsUrl = "wss://thick-lands-begin.loca.lt/ws";
+    const wsUrl = "wss://salty-ears-design.loca.lt/ws";
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
