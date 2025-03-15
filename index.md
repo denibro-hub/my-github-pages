@@ -1,4 +1,3 @@
-
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
@@ -28,7 +27,7 @@
   </style>
 </head>
 <body>
-  <h1>Арбитражные Возможности</h1>
+  <h1>Арбитражные связки</h1>
   <div id="opportunities">
     <p>Ожидание данных...</p>
   </div>
